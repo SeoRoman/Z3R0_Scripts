@@ -1,0 +1,152 @@
+prontera,158,173,4	script	Battle Manager	92,{
+	doevent("battle_core::OnClick");
+}
+
+// NPC status
+// 0 = Battle Grounds Closed
+// 1 = Prepare Parties
+// 2 = Registration Open
+// 3 = Registration Closed
+// 4 = Battle Grounds Active
+
+-	script	battle_core	-1,{
+
+	function F_Randomize;
+
+	OnInit:
+		set(.npc$, "[ Ultimate Battle Master ]"); // ROFLCOPTER?
+		setarray(.bg_Types$[0], "Party", "Guild", "Open");
+
+		// Testing Party Members (2)
+		// Registration OPEN (Min/Max Members 3) | Party Type
+
+		setarray(.bg_Players[0], 0); // Player AID
+		setarray(.bg_TeamAssignment[0], 0); // Respective Team Assignment to Player AID
+		set(.bg_TeamID, 0);
+
+		set(.bg_Type, 0); // Array Index :D
+		set(.bg_MaxTeam, 2); // Total Members on One team
+		set(.bg_MaxPlayers, .bg_MaxTeam * 2); // Total Number of Players Total
+		set(.bg_ready, 0);
+
+		set(.bg_NotEnoughMembers, 0); // Divide, Cancel Event
+		set(.bg_UseAtCommands, 0); // 0 - No, 1 - Yes
+		set(.bg_RequireUniqueJobs, 1); // 0 - No, 1 - Yes
+
+		set(.bg_Randomize, 0); // 0 - No, 1 - Yes
+
+		// Don't CHANGE this is for the event status itself :D
+		set(.bg_status, 2);
+		end;
+
+	OnClick:
+
+		set(.@class, eaclass());
+		dispbottom("EAC Class: " + .@class);
+		dispbottom("Upper Class: " + (.@class&EAJ_UPPERMASK));
+
+		mes(.npc$); // Blah Blah Blah
+
+		if (.bg_status == 0) BT_Notification(1); // Closed
+		else if (.bg_status == 1) BT_Notification(2); // Preparing
+		else if (.bg_status == 2) {
+			BT_Notification(3);
+			BT_RegisterAttempt();
+		}
+		else BT_Notification(4); // Active
+
+		end;
+
+	OnMinute31:
+		set(.bg_status, 1); // hehe :D
+		if (.bg_Randomize) F_Randomize();
+
+		BT_Notification(100);
+		end;
+
+	OnClock0000:
+	OnClock0100:
+	OnClock0200:
+	OnClock0300:
+	OnClock0400:
+	OnClock0500:
+	OnClock0600:
+	OnClock0700:
+	OnClock0800:
+	OnClock0900:
+	OnClock1000:
+	OnClock1100:
+	OnClock1200:
+	OnClock1300:
+	OnClock1400:
+	OnClock1500:
+	OnClock1600:
+	OnClock1700:
+	OnClock1800:
+	OnClock1900:
+	OnClock2000:
+	OnClock2100:
+	OnClock2200:
+	OnClock2300:
+			// Announce Registration Open (Lasts for 10 Minutes)
+			set(.rng_rounds, 0);
+			end;
+
+	OnMinute10:
+		// Close Registration (Prepare for Battle)
+		end;
+
+	OnMinute15:
+		// Warp to Battlegrounds
+		end;
+
+	OnMinute20:
+		end;
+
+	OnMinute40:
+		initnpctimer();
+		end;
+
+	OnTimer60000: // 1 minute (every minute)
+		if (.rng_rounds < 5) end;
+		// DO Faster RNG
+		end;
+	OnTimer120000: // 2 minutes After Timer
+
+		// Start RNG
+		// Pick Random Player on Winning Team to Have something applied to character :D
+		// DO something
+		set(.rng_rounds, .rng_rounds + 1);
+		setnpctimer(0); // Reset the Timer :D
+
+	OnMinute49:
+		// Declare Winner or None
+		end;
+
+	// OnMinute50: Will Repeat :D
+
+
+
+	// * FUNCTIONS
+	function	F_Randomize	{
+
+		/*
+			set(.bg_Type, 0); // Party, Guild, Random
+			set(.bg_MaxTeam, 7); // Total Members on One team
+			// set(.bg_MaxPlayers, .bg_MaxTeam * 2); // Total Number of Players Total
+
+			set(.bg_NotEnoughMembers, 0); // Divide, Cancel Event
+			set(.bg_UseAtCommands, 0); // 0 - No, 1 - Yes
+			set(.bg_RequireRandomJobs, 1); // 0 - No, 1 - Yes
+		*/
+		// Re-adjust all the settings for fun :D
+		set(getvariableofnpc(.bg_Type, "battle_core"), rand(0,1));
+		set(getvariableofnpc(.bg_MaxTeam, "battle_core"), rand(2, 12));
+		set(getvariableofnpc(.bg_NotEnoughMembers, "battle_core"), rand(0,1));
+		set(getvariableofnpc(.bg_UseAtCommands, "battle_core"), rand(0,1));
+		set(getvariableofnpc(.bg_RequireRandomJobs, "battle_core"), rand(0,1));
+
+		return;
+	}
+
+}

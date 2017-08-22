@@ -1,0 +1,243 @@
+function	script	BT_GetVariable	{
+	set(getarg(0), getvariableofnpc(getd(getarg(1)), "battle_core"));
+	return;
+}
+
+function	script	BT_GetArray	{
+	copyarray(getarg(0), getelementofarray(getvariableofnpc(getd(getarg(1)), "battle_core"), 0), getarraysize(getvariableofnpc(getd(getarg(1)), "battle_core")));
+	return;
+}
+
+// getarg(0) - Notification ID
+// Some cases allow multiple arguments for instance Case 2 requires .bg_type and .bg_types$
+function	script	BT_Notification	{
+
+	switch(getarg(0)) {
+
+		case 0: // BT_NPC Disabled
+
+		case 1: // BT_CLOSED
+			mes("There is currently no active battle");
+			close();
+
+		case 2: // BT_PREPARING (Need more variables :D)
+
+			// Retrieve what we need :D
+			BT_GetVariable(.@type, ".bg_Type");
+			BT_GetArray(.@types$, ".bg_Types$");
+
+			mes("Registration is not open just yet. Please prepare " + (.@type == 2 ? "Yourself" : "your" + .@types$[.@type]));
+			close();
+
+
+		case 3: // BT_REGISTRATION
+			mes("Registration is now Open!");
+			return;
+
+		case 4: // BT_ACTIVE
+			mes("Battle is currently in progress. Be faster next time noob!");
+			close();
+
+		case 5: // BT_DID_NOT_REGISTER
+			mes("I'm sorry that you do not want to register, maybe next time?");
+			close();
+
+		case 6: // PARTY: BT_PLAYER_NOT_IN_PARTY
+			mes("You must be in a party to join this Battle");
+			close();
+
+		case 7: // PARTY: BT_MUST_BE_PARTY_LEADER
+			mes("You must be the party leader");
+			close();
+
+		case 8: // PARTY: BT_IS_FULL
+			mes("Battle is already full.");
+			close();
+
+		case 9: // PARTY: NOT ENOUGH MEMBERS
+			BT_GetVariable(.@size, ".bg_MaxTeam");
+			mes("You must have only " + .@size + " members in your party");
+			close();
+
+		case 10: // PARTY: DUPLICATE PLAYER, DIFF PARTY REGISTRATION CHECK
+			attachrid(getarg(1));
+			mes("Your party has a member that is already registered.");
+			close();
+
+		case 11: // PARTY: UNIQUE JOBS CHECK
+			attachrid(getarg(1));
+			mes ("You cannot have the same job class more than once.");
+			close();
+
+		case 12: // PARTY: REGISTRATION SUCCESS
+			attachrid(getarg(1));
+			mes("Your party was registered successfully.");
+			close();
+
+		case 100: // BT BROADCAST
+			debugmes("Announcing Broadcast");
+			BT_GetVariable(.@size, ".bg_MaxTeam");
+			BT_GetVariable(.@type, ".bg_Type");
+			BT_GetArray(.@types$, ".bg_Types$");
+			BT_GetVariable(.@use, ".bg_UseAtCommands");
+			BT_GetVariable(.@jobs, ".bg_RequireUniqueJobs");
+
+			// Make announcement of the BG and it's settings
+			announce("Prepare for a " + .@size + " vs " + .@size + " in an Epic " + .@types$[.@type] + " Battle!", bc_all|bc_yellow);
+			sleep(5000);
+			announce("Battle Setting - Not Enough Members: " + ( .@notEnoughMembers ? "Cancel Event" : "Divide and Fight"), bc_all|bc_yellow);
+			sleep(1000);
+			if (.@use)
+				announce("Battle Setting - Available @Commands: @battle_register, @battle_join, @battle_decline", bc_all|bc_yellow);
+			sleep(1000);
+			if (.@jobs)
+				announce("Battle Setting - Require Unique Jobs: Yes", bc_all|bc_yellow);
+			return;
+
+
+
+	}
+
+}
+
+function	script	BT_ChecKPartyJobs	{
+
+	dispbottom("Checking Party Jobs");
+
+	// This is going to be a fun one :D
+
+	set(.@counter, 0);
+
+	freeloop(true);
+
+	// Loop through each Party Member
+	for(.@i = 0; .@i < getarraysize(getarg(0)); .@i++) {
+
+		// Loop through the Job Array that we are creating as we do this...
+		for(.@j = 0; .@j < .@counter; .@j++) {
+
+			attachrid(getelementofarray(getarg(0), .@i));
+
+			dispbottom("Attaching Script: " + getelementofarray(getarg(0), .@i));
+
+			set(.@class, eaclass());
+			set(.@class, ( .@class&EAJ_UPPERMASK ));
+
+			if (.@class == 0) set(.@class, 9999999); // Fix for Novices :D
+
+			dispbottom("Comparing: " + .@class + " to " + .@jobs[.@j]);
+
+			if ( .@class == .@jobs[.@j] ) return 1;
+
+		}
+
+		// If No Entry Found then we can add an entry and we need to utilize a counter instead of the array Size
+		set(.@jobs[.@j], .@class);
+		.@counter++;
+
+	}
+
+	freeloop(false);
+
+	return 0;
+
+}
+
+function	script	BT_RegisteredMembers	{
+
+	copyarray(.@players, getelementofarray(getvariableofnpc(.bg_Players, "battle_core"), 0), getarraysize(getvariableofnpc(.bg_Players, "battle_core")));
+
+	freeloop(true);
+
+	for (.@i = 0; .@i < getarraysize(getarg(0)); .@i++) {
+
+		// Compare to the Registered Array
+		for (.@j = 0; .@j < getarraysize(.@players); .@ij++) {
+			if (getelementofarray(.@players, .@i) == .@players[.@j]) return 1;
+		}
+
+	}
+
+	freeloop(false);
+
+	return 0;
+
+}
+
+// getarg(0) - Members AID Array
+// getarg(1) - Members CID Array
+// getarg(2) - Origin
+// getarg(3) - Team ID
+function	script	BT_Register	{
+
+	for(.@i = 0; .@i < getarraysize(getarg(0)); .@i++) {
+
+		// Attach Player to Script
+		attachrid(getelementofarray(getarg(0), .@i));
+
+		set(.@size, getarraysize(getvariableofnpc(.bg_Players, "battle_core")));
+
+		set(getelementofarray(getvariableofnpc(.bg_Players, "battle_core"), .@size), getcharid(3));
+
+		// Only set this if a team can be determined right now :D
+		if (!getarg(3)) {
+			set(getelementofarray(getvariableofnpc(.bg_TeamAssignment, "battle_core"), .@size), getarg(3));
+			set(getelementofarray(getvariableofnpc(.bg_TeamID, "battle_core"), getarraysize(getvariableofnpc(.bg_TeamID, "battle_core"))), getarg(3));
+		}
+
+		dispbottom("You have successfully been registered for the Battle!");
+
+	}
+
+	BT_Notification(12, getarg(2));
+
+}
+
+function	script	BT_ProcessOpenReg	{ }
+
+function	script	BT_ProcessGuildReg	{ }
+
+function	script	BT_ProcessPartyReg	{
+
+	// In a Party?
+	if (!getcharid(1)) BT_Notification(6);
+
+	// Party Leader?
+	if (getpartyleader(getcharid(1), 2) != getcharid(0)) BT_Notification(7);
+
+	// Check if Registration is Full ?
+	if (getvariableofnpc(.bg_ready, "battle_core")) BT_Notification(8);
+
+	// Get Party Member Information
+	getpartymember(getcharid(1), 2, .@members_aid); // Changed from 0 (charid) to 1 to PartyID DUH !?
+	getpartymember(getcharid(1), 1, .@members_cid); // Changed from 0 (charid) to 1 to PartyID DUH !?
+
+	// Check party member count
+	if (getarraysize(.@members_aid) != getvariableofnpc(.bg_MaxTeam, "battle_core")) BT_Notification(9);
+
+	// Store the Originating Player Account ID
+	set(.@origin, getcharid(3));
+
+	if (BT_RegisteredMembers(.@members_aid)) BT_Notification(10, .@origin);
+
+	BT_GetVariable(.@reqJobs, ".bg_RequireUniqueJobs");
+
+	if (.@reqJobs && BT_ChecKPartyJobs(.@members_aid)) BT_Notification(11, .@origin);
+
+	BT_Register(.@members_aid, .@members_cid, .@origin, getcharid(1));
+
+}
+
+function	script	BT_RegisterAttempt	{
+	mes("Would you like to Register?");
+
+	if (select("Yes:No") == 2) BT_Notification(5);
+
+	BT_GetVariable(.@type, ".bg_Type");
+
+	if (.@type == 0) BT_ProcessPartyReg();
+	else if (.@type == 1) BT_ProcessGuildReg();
+	else BT_ProcessOpenReg();
+
+	return;
+}
