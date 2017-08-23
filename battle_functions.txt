@@ -69,8 +69,13 @@ function	script	BT_Notification	{
 			close();
 
 		case 12: // PARTY: REGISTRATION SUCCESS
+			BT_GetVariable(.@announce, ".bg_announce_on_reg");
 			attachrid(getarg(1));
 			mes("Your party was registered successfully.");
+
+			if (.@announce)
+				announce("Party (" + getpartyname(getcharid(1)) + ") - " + getarg(2) + " has registered. Wish them luck!", bc_all|bc_yellow);
+				
 			close();
 
 		case 100: // BROADCAST: BT PREPARE
@@ -185,6 +190,8 @@ function	script	BT_Register	{
 		// Attach Player to Script
 		attachrid(getelementofarray(getarg(0), .@i));
 
+		if (.@announce) set(.@msgString$, .@msgString$ + ( .@i ? ", " : "" ) + strcharinfo(0));
+
 		set(.@size, getarraysize(getvariableofnpc(.bg_Players, "battle_core")));
 
 		set(getelementofarray(getvariableofnpc(.bg_Players, "battle_core"), .@size), getcharid(3));
@@ -203,7 +210,7 @@ function	script	BT_Register	{
 
 	}
 
-	BT_Notification(12, getarg(2));
+	BT_Notification(12, getarg(2), .@msgString$);
 
 }
 
