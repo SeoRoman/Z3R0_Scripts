@@ -55,8 +55,7 @@ function	script	BT_Notification	{
 			close();
 
 		case 9: // PARTY: NOT ENOUGH MEMBERS
-			BT_GetVariable(.@size, ".bg_MaxTeam");
-			mes("You must have only " + .@size + " members in your party");
+			mes("You must have only " + getarg(1) + " members in your party");
 			close();
 
 		case 10: // PARTY: DUPLICATE PLAYER, DIFF PARTY REGISTRATION CHECK
@@ -100,7 +99,7 @@ function	script	BT_Notification	{
 
 }
 
-function	script	BT_ChecKPartyJobs	{
+function	script	BT_CheckPartyJobs	{
 
 	dispbottom("Checking Party Jobs");
 
@@ -114,7 +113,7 @@ function	script	BT_ChecKPartyJobs	{
 	for(.@i = 0; .@i < getarraysize(getarg(0)); .@i++) {
 
 		// Loop through the Job Array that we are creating as we do this...
-		for(.@j = 0; .@j < .@counter; .@j++) {
+		for(.@j = 0; .@j <= .@counter; .@j++) {
 
 			attachrid(getelementofarray(getarg(0), .@i));
 
@@ -127,12 +126,16 @@ function	script	BT_ChecKPartyJobs	{
 
 			dispbottom("Comparing: " + .@class + " to " + .@jobs[.@j]);
 
-			if ( .@class == .@jobs[.@j] ) return 1;
+			if ( .@class == .@jobs[.@j] ) {
+				dispbottom("Returning 1");
+				return 1;
+			}
+
+			set(.@jobs[.@j], .@class); // DUH (PUT INSIDE LOOP DUMMY)
 
 		}
 
 		// If No Entry Found then we can add an entry and we need to utilize a counter instead of the array Size
-		set(.@jobs[.@j], .@class);
 		.@counter++;
 
 	}
@@ -185,6 +188,10 @@ function	script	BT_Register	{
 			set(getelementofarray(getvariableofnpc(.bg_TeamID, "battle_core"), getarraysize(getvariableofnpc(.bg_TeamID, "battle_core"))), getarg(3));
 		}
 
+		if (getarraysize(getvariableofnpc(.bg_TeamID, "battle_core")) == 2) {
+			set(getvariableofnpc(.bg_ready, "battle_core"), 1); // SET BATTLE READY :D
+		}
+
 		dispbottom("You have successfully been registered for the Battle!");
 
 	}
@@ -212,8 +219,11 @@ function	script	BT_ProcessPartyReg	{
 	getpartymember(getcharid(1), 2, .@members_aid); // Changed from 0 (charid) to 1 to PartyID DUH !?
 	getpartymember(getcharid(1), 1, .@members_cid); // Changed from 0 (charid) to 1 to PartyID DUH !?
 
+	BT_GetVariable(.@MaxTeam, ".bg_MaxTeam");
+
 	// Check party member count
-	if (getarraysize(.@members_aid) != getvariableofnpc(.bg_MaxTeam, "battle_core")) BT_Notification(9);
+	// Check Online Member Count
+	if (!intance_check_party(getcharid(1), .@MaxTeam)) BT_Notification(9, .@MaxTeam);
 
 	// Store the Originating Player Account ID
 	set(.@origin, getcharid(3));
@@ -222,7 +232,7 @@ function	script	BT_ProcessPartyReg	{
 
 	BT_GetVariable(.@reqJobs, ".bg_RequireUniqueJobs");
 
-	if (.@reqJobs && BT_ChecKPartyJobs(.@members_aid)) BT_Notification(11, .@origin);
+	if (.@reqJobs && BT_CheckPartyJobs(.@members_aid)) BT_Notification(11, .@origin);
 
 	BT_Register(.@members_aid, .@members_cid, .@origin, getcharid(1));
 

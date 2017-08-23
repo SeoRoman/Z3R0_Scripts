@@ -29,11 +29,18 @@ prontera,158,173,4	script	Battle Manager	92,{
 		set(.bg_MaxPlayers, .bg_MaxTeam * 2); // Total Number of Players Total
 		set(.bg_ready, 0);
 
-		set(.bg_NotEnoughMembers, 0); // Divide, Cancel Event
+		set(.bg_NotEnoughMembers, 0); // Cancel Event, Divide
 		set(.bg_UseAtCommands, 0); // 0 - No, 1 - Yes
 		set(.bg_RequireUniqueJobs, 1); // 0 - No, 1 - Yes
 
+		set(.bg_announce_on_reg, 1); // 0 - No, 1 - Yes (Announce when Party, Guild or Member Registers);
+
 		set(.bg_Randomize, 0); // 0 - No, 1 - Yes
+		setarray(.bg_rand_Type[0], 0, 2); // Allows values 0 to 2 (Change to whatever you want) Cannot be less than 0 or higher than 2... use the same number for both if you want it to always be that values
+		setarray(.bg_rand_MaxTeam[0],3, 12); // Random # of Players Per Team (3 to 12) change to fit your needs
+		setarray(.bg_rand_NotEnough[0], 0, 1); // Set to Randomize between 0 - Cancelling the Event or 1 Dividing Teams
+		setarray(.bg_rand_UseAtCommands[0], 0, 1); // Set to Randomize between 0 - Do not use @commands or 1 - Use @commands
+		setarray(.bg_rand_ReqUniqueJobs[0], 0, 1); // Set to Randomize between 0 - Do not require or 1 - Require
 
 		// Don't CHANGE this is for the event status itself :D
 		set(.bg_status, 2);
@@ -125,26 +132,26 @@ prontera,158,173,4	script	Battle Manager	92,{
 
 	// OnMinute50: Will Repeat :D
 
-
-
 	// * FUNCTIONS
+	// getarg(0) - .bg_Type
+	// getarg(1) - .bg_MaxTeam
+	// getarg(2) - .bg_NotEnoughMembers
+	// getarg(3) - .bg_UseAtCommands
+	// getarg(4) - .bg_RequireUniqueJobs
 	function	F_Randomize	{
 
-		/*
-			set(.bg_Type, 0); // Party, Guild, Random
-			set(.bg_MaxTeam, 7); // Total Members on One team
-			// set(.bg_MaxPlayers, .bg_MaxTeam * 2); // Total Number of Players Total
+		BT_GetArray(.@rand_Type, ".bg_rand_Type");
+		BT_GetArray(.@rand_MaxTeam, ".bg_rand_MaxTeam");
+		BT_GetArray(.@rand_NotEnough, ".bg_rand_NotEnugh");
+		BT_GetArray(.@rand_UseCommands, ".bg_rand_UseAtCommands");
+		BT_GetArray(.@rand_ReqJobs, ".bg_rand_ReqUniqueJobs");
 
-			set(.bg_NotEnoughMembers, 0); // Divide, Cancel Event
-			set(.bg_UseAtCommands, 0); // 0 - No, 1 - Yes
-			set(.bg_RequireRandomJobs, 1); // 0 - No, 1 - Yes
-		*/
 		// Re-adjust all the settings for fun :D
-		set(getvariableofnpc(.bg_Type, "battle_core"), rand(0,1));
-		set(getvariableofnpc(.bg_MaxTeam, "battle_core"), rand(2, 12));
-		set(getvariableofnpc(.bg_NotEnoughMembers, "battle_core"), rand(0,1));
-		set(getvariableofnpc(.bg_UseAtCommands, "battle_core"), rand(0,1));
-		set(getvariableofnpc(.bg_RequireRandomJobs, "battle_core"), rand(0,1));
+		set(getarg(0), rand(.@rand_Type[0], .@rand_Type[1]);
+		set(getarg(1), rand(.@rand_MaxTeam[0], .@rand_MaxTeam[1]);
+		set(getarg(2), rand(.@rand_NotEnough[0],.@rand_NotEnough[1]);
+		set(getarg(3), rand(.@rand_UseCommands[0], .@rand_UseCommands[1]);
+		set(getarg(4), rand(.@rand_ReqJobs[0],.@rand_ReqJobs[1]);
 
 		return;
 	}
