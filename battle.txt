@@ -64,7 +64,7 @@ prontera,158,173,4	script	Battle Manager	92,{
 
 		end;
 
-	OnMinute31:
+	OnMinute50:
 		set(.bg_status, 1); // hehe :D
 		if (.bg_Randomize) F_Randomize();
 
@@ -96,10 +96,13 @@ prontera,158,173,4	script	Battle Manager	92,{
 	OnClock2200:
 	OnClock2300:
 			// Announce Registration Open (Lasts for 10 Minutes)
+			set(.bg_status, 2);
 			set(.rng_rounds, 0);
+			BT_Notification(200);
 			end;
 
 	OnMinute10:
+		set(.bg_status, 3);
 		// Close Registration (Prepare for Battle)
 		end;
 

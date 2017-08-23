@@ -73,7 +73,7 @@ function	script	BT_Notification	{
 			mes("Your party was registered successfully.");
 			close();
 
-		case 100: // BT BROADCAST
+		case 100: // BROADCAST: BT PREPARE
 			debugmes("Announcing Broadcast");
 			BT_GetVariable(.@size, ".bg_MaxTeam");
 			BT_GetVariable(.@type, ".bg_Type");
@@ -93,7 +93,14 @@ function	script	BT_Notification	{
 				announce("Battle Setting - Require Unique Jobs: Yes", bc_all|bc_yellow);
 			return;
 
+		case 200: // BROADCAST: BT REGISTRATION OPEN
 
+			BT_GetArray(.@types$, ".bg_Types$");
+			BT_GetVariable(.@type, ".bg_Type");
+			BT_GetVariable(.@max, ".bg_MaxTeam");
+
+			announce("Registration is Now Open for the (" + .@types$[.@type] + ") " + .@max " vs " + .@max, bc_all|bc_yellow);
+			end;
 
 	}
 
